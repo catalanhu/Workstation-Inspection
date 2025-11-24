@@ -52,13 +52,13 @@ def compute_quality_metrics(merged_result, window_days=90):
     return result_with_metrics
 
 def consolidate_metrics(result_with_metrics):
-    # Step 1: Collect date keys for each station
+    # 收集每个工位的日期集合
     station_dates = {station: set(df['date']) for station, df in result_with_metrics.items()}
 
-    # Step 2: Find common dates across all stations
+    # 找出所有工位的公共日期
     common_dates = set.intersection(*station_dates.values())
 
-    # Step 3: Filter each station's DataFrame to only include common dates
+    # 按工位名称排序筛选，过滤掉不在公共日期中的数据
     station_order = sorted(result_with_metrics.keys())  # fixed order
     filtered_dfs = []
     for station in station_order:
@@ -67,15 +67,15 @@ def consolidate_metrics(result_with_metrics):
         df_filtered['station'] = station
         filtered_dfs.append(df_filtered)
 
-    # Step 4: Combine all filtered DataFrames
+    # 合并过滤后的数据
     combined_df = pd.concat(filtered_dfs, ignore_index=True)
 
-    # Step 5: Sort by date and station order
+    # 按日期和工位顺序排序
     combined_df['date'] = pd.to_datetime(combined_df['date'])
     combined_df['station_order'] = combined_df['station'].map({name: i for i, name in enumerate(station_order)})
     combined_df = combined_df.sort_values(by=['date', 'station_order']).drop(columns=['station_order']).reset_index(drop=True)
 
-    # Step 6: Select required columns
+    # 选取需要的数据
     final_df = combined_df[['date', 'station', '检验成本', '合格率', '返工成本', '报废成本']]
     
     final_df = final_df.copy()
